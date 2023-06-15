@@ -1,28 +1,68 @@
+#==========================================================================
+# Description: Compile rk3588 kernel
+# Copyright (C) 2023 https://github.com/unifreq/linux-5.10.y-rk35xx
+# Copyright (C) 2023 https://github.com/ophub/kernel
+#==========================================================================
+
 name: Compile rk3588 kernel
 
 on:
   repository_dispatch:
   workflow_dispatch:
     inputs:
+      kernel_source:
+        description: "Select the kernel source"
+        required: false
+        default: "unifreq/linux-5.10.y-rk35xx"
+        type: choice
+        options:
+          - unifreq/linux-5.10.y-rk35xx
+      kernel_version:
+        description: "Select kernel version"
+        required: false
+        default: "5.10.1"
+        type: choice
+        options:
+          - 5.10.1
+      kernel_auto:
+        description: "Auto use the latest kernel"
+        required: false
+        default: true
+        type: boolean
+      kernel_package:
+        description: "Select compile package list"
+        required: false
+        default: "all"
+        type: choice
+        options:
+          - all
+          - dtbs
+      kernel_toolchain:
+        description: "Select the compilation toolchain"
+        required: false
+        default: "gcc"
+        type: choice
+        options:
+          - gcc
+      kernel_sign:
+        description: "Set the kernel custom signature"
+        required: false
+        default: "-rk3588"
+        type: choice
+        options:
+          - -rk3588
+          - -yourname
       kernel_config:
         description: "Set the path of kernel .config"
         required: false
-        default: "configs/rk3588"
+        default: "compile-kernel/rk3588"
         type: choice
         options:
-          - configs/rk3588
+          - compile-kernel/rk3588
           - false
-  schedule:
-    - cron: 15 21 * * *
 
 env:
-  KERNEL_SOURCE: unifreq/linux-5.10.y-rk35xx
-  KERNEL_VERSION: 5.10.1
-  KERNEL_TOOLCHAIN: gcc
-  KERNEL_SIGN: -rk3588
-  KERNEL_PACKAGE: all
-  KERNEL_AUTO: true
-  TZ: Asia/Shanghai
+  TZ: America/New_York
 
 jobs:
   build:
@@ -43,7 +83,7 @@ jobs:
           sudo rm -rf /usr/share/dotnet /etc/apt/sources.list.d /usr/local/lib/android 2>/dev/null
           sudo -E apt-get -y update
           sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
-          sudo -E apt-get -y install $(curl -fsSL https://raw.githubusercontent.com/ysx88/OpenWrt/main/ubuntu2204-build-armbian-depends)
+          sudo -E apt-get -y install $(curl -fsSL https://is.gd/depend_ubuntu2204_armbian)
           sudo -E systemctl daemon-reload
           #sudo -E apt-get -y full-upgrade
           sudo -E apt-get -y autoremove --purge
@@ -73,4 +113,8 @@ jobs:
           allowUpdates: true
           token: ${{ secrets.GH_TOKEN }}
           body: |
+            - The kernel can be used to compile Armbian and OpenWrt.
+            - The kernel source code comes from: ${{ inputs.kernel_source }}
+            - The kernel compilation toolchain: ${{ inputs.kernel_toolchain }}
+            - This is a dedicated kernel for `Rockchip rk3588` and is not compatible with other series.
             - 这是 `Rockchip rk3588` 专用内核，和其他系列不通用。
