@@ -1,9 +1,9 @@
-name: Delete Old Workflows
+name: 删除工作流
 on:
   workflow_dispatch:
 
   schedule:
-    - cron: 0 16 */3 * *
+    - cron: 0 16 * * *
 
 jobs:
   del_runs:
