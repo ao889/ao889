@@ -1,4 +1,4 @@
-name: R2S固件
+name: 生成r2s-config
 
 on:
   repository_dispatch:
@@ -7,11 +7,11 @@ on:
       ssh:
         description: 'SSH connection to Actions'
         required: false
-        default: 'false'
-  schedule:
-    - cron: 0 10 * * *
-  watch:
-     types: started
+        default: "false"
+        type: choice
+        options:
+          - false
+          - true
 
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
@@ -20,12 +20,10 @@ env:
   CONFIG_FILE: rockchip/r2s.config
   DIY_P1_SH: rockchip/diy-part1.sh
   DIY_P2_SH: rockchip/diy-r2s.sh
-  UPLOAD_CONFIG: true
-  UPLOAD_RELEASE: true
+  UPLOAD_FIRMWARE: true
+  UPLOAD_RELEASE: false
   CONFIG: r2s
   TZ: Asia/Shanghai
-  FILE_NAME: NanoPi-R2S
-  PRODUCT_NAME: NanoPi-R2S
 
 jobs:
   build:
@@ -118,3 +116,21 @@ jobs:
       with:
         name: ${{ env.CONFIG }}_config${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE }}
+
+    - name: 生成发布标签
+      id: tag
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      run: |
+        echo "::set-output name=release_tag::$(date +"%Y.%m.%d-%H%M")"
+        touch release.txt
+        echo "status=success" >> $GITHUB_OUTPUT
+        
+    - name: 上传config文件并发布
+      uses: softprops/action-gh-release@v1
+      if: steps.tag.outputs.status == 'success' && !cancelled()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body_path: release.txt
+        files: ${{ env.FIRMWARE }}/*
