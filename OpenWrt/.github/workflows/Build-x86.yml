@@ -130,6 +130,7 @@ jobs:
         rm -rf IPK.tar.gz
         rm -rf openwrt-x86-64-generic-kernel.bin
         rm -rf profiles.json
+        rm -rf *rootfs.img.gz
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "{status}={success}" >> $GITHUB_OUTPUT
 
@@ -143,7 +144,7 @@ jobs:
         removeArtifacts: true
         token: ${{ secrets.GH_TOKEN }}
         body: |
-          * 后台地址：192.168.88.2
+          * 后台地址：192.168.1.1
           默认密码：password
           
     - name: Telegram notification
